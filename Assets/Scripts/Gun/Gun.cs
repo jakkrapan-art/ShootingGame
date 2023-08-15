@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,6 +8,10 @@ public class Gun : MonoBehaviour
 {
   [SerializeField]
   private GameObject _gunFire;
+  [SerializeField]
+  private Canvas _gunFireHUD;
+  [SerializeField]
+  private UIGun _ui;
 
   private Magazine _magazine;
   private float _reloadTime = 1.2f;
@@ -15,6 +20,9 @@ public class Gun : MonoBehaviour
   private void Start()
   {
     _magazine = new Magazine(5, 10);
+    _ui.Setup(new UIGun.SetupParam(_magazine.MaxAmmo, _magazine.CurrentAmmo, _reloadTime));
+
+    _magazine.SubscribeOnAmmoDecreased((usedIndex) => { _ui.SetAmmoEmpty(usedIndex); });
   }
 
   private void Update()
@@ -29,7 +37,7 @@ public class Gun : MonoBehaviour
 
   public void HeadingToMouse()
   {
-    var mousePosition = Input.mousePosition;
+    var mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
     Vector3 directionToMouse = mousePosition - transform.position;
     float angle = Mathf.Atan2(directionToMouse.y, directionToMouse.x) * Mathf.Rad2Deg;
     transform.rotation = Quaternion.Euler(0f, 0f, angle - 90);
@@ -44,8 +52,7 @@ public class Gun : MonoBehaviour
     }
 
     var mousePosition = Input.mousePosition;
-    var parent = transform.parent;
-    if (_gunFire && parent && parent.TryGetComponent(out Canvas canvas)) Instantiate(_gunFire, mousePosition, Quaternion.identity, canvas.transform);
+    if (_gunFire) Instantiate(_gunFire, mousePosition, Quaternion.identity, _gunFireHUD.transform);
     _magazine.DecreaseAmmo();
   }
 
@@ -61,6 +68,7 @@ public class Gun : MonoBehaviour
     yield return new WaitForSeconds(_reloadTime);
 
     _magazine.Reload();
+    _ui.ReloadAmmo();
     _reloading = false;
     Debug.Log("Reload successfully.");
   }
