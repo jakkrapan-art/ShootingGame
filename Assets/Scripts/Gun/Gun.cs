@@ -7,7 +7,7 @@ using static UnityEngine.GraphicsBuffer;
 public class Gun : MonoBehaviour
 {
   [SerializeField]
-  private GameObject _gunFire;
+  private GunFire _gunFireTemplate;
   [SerializeField]
   private Canvas _gunFireHUD;
   [SerializeField]
@@ -52,7 +52,10 @@ public class Gun : MonoBehaviour
     }
 
     var mousePosition = Input.mousePosition;
-    if (_gunFire) Instantiate(_gunFire, mousePosition, Quaternion.identity, _gunFireHUD.transform);
+    if (_gunFireTemplate)
+    {
+      Instantiate(_gunFireTemplate, mousePosition, Quaternion.identity, _gunFireHUD.transform).Setup(1);
+    }
     _magazine.DecreaseAmmo();
   }
 
